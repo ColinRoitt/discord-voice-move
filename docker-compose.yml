@@ -1,0 +1,39 @@
+services:
+  voice-mover:
+    build: .
+    container_name: voice-mover
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:' + (process.env.PORT||3000) + '/api/voice', {headers:{'x-admin-key':process.env.ADMIN_SHARED_SECRET||'change-me'}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # Dev profile (hot reload): separate containers for API and Vite client
+  api:
+    profiles: ["dev"]
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm start"
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+  client:
+    profiles: ["dev"]
+    image: node:20-alpine
+    working_dir: /app/client
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
