@@ -33,7 +33,7 @@ app.use(bodyParser.json());
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) {
     const key = req.header("x-admin-key");
-    // if (key !== ADMIN_SHARED_SECRET) return res.status(401).json({ error: "Unauthorized" });
+    if (key !== ADMIN_SHARED_SECRET) return res.status(401).json({ error: "Unauthorized" });
   }
   next();
 });
