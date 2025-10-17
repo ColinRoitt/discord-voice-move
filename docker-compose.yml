@@ -3,7 +3,7 @@ services:
     build: .
     container_name: voice-mover
     ports:
-      - "3000:3000"
+      - "3012:3000"
     env_file:
       - .env
     restart: unless-stopped
@@ -13,27 +13,11 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 3
+    networks:
+      - proxy
 
-  # Dev profile (hot reload): separate containers for API and Vite client
-  api:
-    profiles: ["dev"]
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: sh -c "npm install && npm start"
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
-  client:
-    profiles: ["dev"]
-    image: node:20-alpine
-    working_dir: /app/client
-    volumes:
-      - .:/app
-    command: sh -c "npm install && npm run dev -- --host"
-    ports:
-      - "5173:5173"
-    depends_on:
-      - api
+networks:
+   proxy:
+       name: proxy
+       driver: bridge
+       external: true
